@@ -1,6 +1,8 @@
 //by using promises
-const asynchandler=(handleasync)=>(req,res,next)=>{
-    Promise.resolve(handleasync(req,res,next)).catch((err)=>next(err))
+const asynchandler = (handleasync) => {
+    (req, res, next) => {
+        Promise.resolve(handleasync(req, res, next)).catch((err) => next(err))
+    }
 }
 
 
@@ -14,8 +16,8 @@ const asynchandler=(handleasync)=>(req,res,next)=>{
 //             message:err.message
 //         })
 //         console.log('Error occured in async handler');
-        
+
 //     }
 // }
 
-export {asynchandler}
+export { asynchandler }

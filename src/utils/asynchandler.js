@@ -1,6 +1,6 @@
 //by using promises
 const asynchandler = (handleasync) => {
-    (req, res, next) => {
+    return (req, res, next) => {
         Promise.resolve(handleasync(req, res, next)).catch((err) => next(err))
     }
 }

@@ -3,7 +3,7 @@ import cors from "cors"
 import cookieParser from "cookie-parser"
 const app=express()
 app.use(cors({
-    origin:process.env.CORS_URL,
+    origin:process.env.CORS_ORIGIN,
     credentials:true
 }))
 app.use(express.json({limit:"16kb"}))
@@ -11,5 +11,10 @@ app.use(express.urlencoded( { extended: true } ))
 app.use(express.static("public"))
 // parse cookies    
 app.use(cookieParser())
+//routes
+import userRouter from "./routes/user.routes.js"
+//declaring router
+app.use("/api/v1/users",userRouter)
+//http:localhost:8000/api/v1/users/register
 
 export {app}

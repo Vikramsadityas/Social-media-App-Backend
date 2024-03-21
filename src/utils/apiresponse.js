@@ -10,3 +10,4 @@ class handleresponse{
         this.success=statuscode<400;
     }
 }
+export {handleresponse}

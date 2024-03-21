@@ -1,5 +1,5 @@
 import mongoose,{Schema} from "mongoose";
-import { JsonWebTokenError } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs"
 const userSchema=new Schema({
     username:{
@@ -27,7 +27,7 @@ const userSchema=new Schema({
         type:String,
         required:true,
     },
-    Coverimage:{
+    coverimage:{
         type:String //cloudinary url
     },
     Watchhistory:[

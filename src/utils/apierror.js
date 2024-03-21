@@ -19,3 +19,4 @@ class handleerror extends Error{
         }
     }
 }
+export {handleerror}

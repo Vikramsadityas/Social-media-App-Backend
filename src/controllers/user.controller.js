@@ -166,6 +166,9 @@ const logoutuser=asynchandler(async(req,res)=>{
 
 const refreshAccessToken=asynchandler(async(req,res)=>{
     const incomingrefreshtoken= req.cookies.refreshtoken || req.body.refreshtoken
+    
+    const ans= await req.cookies.refreshtoken;
+    console.log(ans);
     if(!incomingrefreshtoken)
     {
         throw new handleerror(401,"Unauthorized request");
@@ -179,7 +182,7 @@ const refreshAccessToken=asynchandler(async(req,res)=>{
             throw new handleerror(401,"Invalid refresh token");
         }
         if(incomingrefreshtoken!==user?.RefreshToken){
-            throw new handleerror(401,"Refresh Token Expired")
+            throw new handleerror(401,"Refresh Token Expired or used")
         }
         const options={
             httpOnly:true,
@@ -188,8 +191,8 @@ const refreshAccessToken=asynchandler(async(req,res)=>{
         const {accesstoken,newrefreshtoken}=await generateAccessandRefreshtoken(user._id)
         return res
         .status(200)
-        .cookie("accessToken",accesstoken,options)
-        .cookie("RefreshToken",newrefreshtoken,options)
+        .cookie("accesstoken",accesstoken,options)
+        .cookie("refreshtoken",newrefreshtoken,options)
         .json(
             new handleresponse(
                 200,
@@ -198,8 +201,11 @@ const refreshAccessToken=asynchandler(async(req,res)=>{
                 
             )
         )
-    } catch (error) {
+    } 
+    catch (error) {
         throw new handleerror(401,error?.message ||"Invalid Refresh Token")
+        // console.log('invalid refresh token');
+        
     }
 })
 

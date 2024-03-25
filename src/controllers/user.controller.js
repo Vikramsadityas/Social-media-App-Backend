@@ -209,9 +209,112 @@ const refreshAccessToken=asynchandler(async(req,res)=>{
     }
 })
 
+const changepassword=asynchandler(async(req,res)=>{
+    const {oldpassword,newpassword}=req.body
+    const user=await User.findById(req.user?._id)
+    const ispasswordcorrect=await user.ispasswordcorrect(oldpassword)
+    if(!ispasswordcorrect)
+    {
+        throw new handleerror(400,"Invalid Password")   
+    }
+    user.password=newpassword
+    await user.save({validateBeforeSave:false})
+
+    return res
+    .status(200)
+    .json(
+        new handleresponse(200,{},"Password Changed Successfully")
+    )
+})
+
+const getcurrentuser=asynchandler(async(req,res)=>{
+    return res
+    .status(200)
+    .json(
+        new handleresponse(200,req.user,"Current user set successfully")
+    )
+})
+
+const updateuserdetail=asynchandler(async(req,res)=>{
+    const{fullname,email}=req.body
+    const user=User.findByIdAndUpdate(
+        req.user._id,
+        {
+            fullname:fullname,
+            email:email
+        },
+        {
+            new:true
+        }
+    ).select("-password")
+
+    return res
+    .status(200)
+    .json(
+        new handleresponse(200,user,"Details Updated Successfully")
+    )
+})
+
+const updateAvatar=asynchandler(async(req,res)=>{
+    const avatarlocalpath=req.file?.path
+    if(!avatarlocalpath)
+    {
+        throw new handleerror(400,"Avatar image not uploaded")
+    }
+    const avatar=await uploadFile(avatarlocalpath);
+    if(!avatar.url)
+    {
+        throw new handleerror(500,"Problem Occured in File Uploading")
+    }
+    const user=await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set:{
+                avatar:avatar.url
+            }
+        },
+        {new:true}
+        ).select("-password")
+    return res
+    .status(200)
+    .json(
+        new handleresponse(200,user,"Avatar image uploaded Successfully")
+    )
+})
+const updatecoverimage=asynchandler(async(req,res)=>{
+    const coverimagelocalpath=req.file?.path
+    if(!coverimagelocalpath)
+    {
+        throw new handleerror(400,"Cover image not uploaded")
+    }
+    const coverimage=await uploadFile(coverimagelocalpath);
+    if(!coverimage.url)
+    {
+        throw new handleerror(500,"Problem Occured in File Uploading")
+    }
+    const user=await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set:{
+                coverimage:coverimage.url
+            }
+        },
+        {new:true}
+        ).select("-password")
+    return res
+    .status(200)
+    .json(
+        new handleresponse(200,user,"Cover image uploaded Successfully")
+    )
+})
 
 export {loginuser,
     registeruser,
     logoutuser,
-    refreshAccessToken
+    refreshAccessToken,
+    changepassword,
+    getcurrentuser,
+    updateuserdetail,
+    updateAvatar,
+    updatecoverimage
 }

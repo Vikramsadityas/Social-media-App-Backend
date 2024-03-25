@@ -237,7 +237,7 @@ const getcurrentuser=asynchandler(async(req,res)=>{
 
 const updateuserdetail=asynchandler(async(req,res)=>{
     const{fullname,email}=req.body
-    const user=User.findByIdAndUpdate(
+    const user=await User.findByIdAndUpdate(
         req.user._id,
         {
             fullname:fullname,

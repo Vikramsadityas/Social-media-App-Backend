@@ -1,5 +1,6 @@
 import {v2 as cloudinary} from 'cloudinary';
 import fs from "fs"
+import { handleerror } from './apierror';
           
 cloudinary.config({ 
   cloud_name:process.env.CLOUDINARY_CLOUD_NAME, 
@@ -21,5 +22,13 @@ const uploadFile=async function(localFilepath){
         return null
     }
 }
+const deletefile=async function(fileurl){
+    try{
+        await cloudinary.uploader.destroy(fileurl.split("/").pop())
+    }
+    catch(error){
+        throw new handleerror(500,error?.message || "Cannot delete previous file")
+    }
+}
 
-export {uploadFile}
+export {uploadFile,deletefile}

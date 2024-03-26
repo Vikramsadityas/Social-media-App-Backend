@@ -1,9 +1,10 @@
 import { asynchandler } from "../utils/asynchandler.js";
 import {handleerror} from "../utils/apierror.js"
 import {User} from "../models/user.model.js"
-import {uploadFile} from "../utils/cloudinary.js"
+import {uploadFile,deletefile} from "../utils/cloudinary.js"
 import { handleresponse } from "../utils/apiresponse.js";
 import jwt  from "jsonwebtoken";
+import mongoose from "mongoose";
 
 const generateAccessandRefreshtoken=async(userid)=>{
     try {
@@ -307,7 +308,161 @@ const updatecoverimage=asynchandler(async(req,res)=>{
         new handleresponse(200,user,"Cover image uploaded Successfully")
     )
 })
+//Delete old images before uploading new
 
+const deleteavatar=asynchandler(async(req,res)=>{
+    const avatarpath=req.files?.path
+    if(!avatarpath)
+    {
+        throw new handleerror(400,"No Image to Delete")
+    }
+    await deletefile(avatarpath)
+
+    return res
+    .status(200)
+    .json(
+        new handleresponse(200,"File Deleted Successfully")
+    )
+})
+
+const deletecoverimage=asynchandler(async(req,res)=>{
+    const coverimagepath=req.files?.path
+    if(!coverimagepath)
+    {
+        throw new handleerror(400,"No Image to Delete")
+    }
+    await deletefile(coverimagepath)
+
+    return res
+    .status(200)
+    .json(
+        new handleresponse(200,"File Deleted Successfully")
+    )
+})
+
+const getUserChannelProfile=asynchandler(async(req,res)=>{
+    const {username}=req.params
+    if(!username)
+    {
+        throw new handleerror(400,"Username is required")
+    }
+
+    const channel=await User.aggregate(
+        [
+            {
+                $match:{
+                    username:username?.toLowerCase()
+                }
+            },
+            {
+                $lookup:{
+                    from:"subscriptions",
+                    localField:"_id",
+                    foreignField:"channel",
+                    as:"subscribers"
+                }
+            },
+            {
+                $lookup:{
+                    from:"subscriptions",
+                    localField:"_id",
+                    foreignField:"subscriber",
+                    as:"subscribedto"
+                }
+            },
+            {
+                $addFields:{
+                    subscribercount:{
+                        $size: "$subscribers"
+                    },
+                    channelssubscribeto:{
+                        $size:"$subscribedto"
+                    },
+                    isSubscribed:{
+                        $cond:{
+                            if:{$in:[req.user?._id,"subscribers.subscriber"]},
+                            then:true,
+                            else:false
+                        }
+                    }
+                }
+            },
+            {
+                $project:{
+                    fullname:1,
+                    username:1,
+                    avatar:1,
+                    coverimage:1,
+                    subscribercount:1,
+                    isSubscribed:1,
+                    email:1,
+                    channelssubscribeto:1,
+                }
+            }
+        ]
+    )
+    if(!channel?.length){
+        throw new handleerror(404,"channel does not exist")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new handleresponse(200,channel[0],"User profile fetched successfully")
+    )
+})
+
+const getwatchhistory=asynchandler(async(req,res)=>{
+    const user=User.aggregate([
+        {
+            $match:{
+                _id:new mongoose.Types.ObjectId(req.user._id)
+            }
+        },
+        {
+            $lookup:{
+                from:"videos",
+                localField:"Watchhistory",
+                foreignField:"_id",
+                as:"Watchhistory",
+                pipeline:[
+                    {
+                        $lookup:{
+                            from:"users",
+                            localField:"owner",
+                            foreignField:"_id",
+                            as:"owner",
+                            pipeline:[
+                                {
+                                    $project:{
+                                        fullname:1,
+                                        username:1,
+                                        avatar:1,
+                                        coverimage:1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        $addFields:{
+                            owner:{
+                                $first:"$owner"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+
+    ])
+
+    return res
+    .status(200)
+    .json(
+        new handleresponse(200,user[0].Watchhistory,"Watch history fetched successfully")
+    )
+})
 export {loginuser,
     registeruser,
     logoutuser,
@@ -316,5 +471,9 @@ export {loginuser,
     getcurrentuser,
     updateuserdetail,
     updateAvatar,
-    updatecoverimage
+    updatecoverimage,
+    getUserChannelProfile,
+    deleteavatar,
+    deletecoverimage,
+    getwatchhistory
 }

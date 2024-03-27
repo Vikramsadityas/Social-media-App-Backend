@@ -311,38 +311,58 @@ const updatecoverimage=asynchandler(async(req,res)=>{
 //Delete old images before uploading new
 
 const deleteavatar=asynchandler(async(req,res)=>{
-    const avatarpath=req.files?.path
+    const todelete=await User.findById(req.user?._id)
+    console.log(todelete.avatar)
+    const avatarpath=todelete.avatar?todelete.avatar:null
     if(!avatarpath)
     {
         throw new handleerror(400,"No Image to Delete")
     }
     await deletefile(avatarpath)
-
+    const user=await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set:{
+                avatar:""
+            }
+        },
+        {new:true}
+        ).select("-password")
     return res
     .status(200)
     .json(
-        new handleresponse(200,"File Deleted Successfully")
+        new handleresponse(200,user,"File Deleted Successfully")
     )
 })
 
 const deletecoverimage=asynchandler(async(req,res)=>{
-    const coverimagepath=req.files?.path
+    const todelete=await User.findById(req.user?._id)
+    console.log(todelete.coverimage)
+    const coverimagepath=todelete.coverimage?todelete.coverimage:null
     if(!coverimagepath)
     {
         throw new handleerror(400,"No Image to Delete")
     }
     await deletefile(coverimagepath)
-
+    const user=await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set:{
+                coverimage:""
+            }
+        },
+        {new:true}
+        ).select("-password")
     return res
     .status(200)
     .json(
-        new handleresponse(200,"File Deleted Successfully")
+        new handleresponse(200,user,"File Deleted Successfully")
     )
 })
 
 const getUserChannelProfile=asynchandler(async(req,res)=>{
     const {username}=req.params
-    if(!username)
+    if(!username.trim())
     {
         throw new handleerror(400,"Username is required")
     }
@@ -380,7 +400,7 @@ const getUserChannelProfile=asynchandler(async(req,res)=>{
                     },
                     isSubscribed:{
                         $cond:{
-                            if:{$in:[req.user?._id,"subscribers.subscriber"]},
+                            if:{$in:[req.user?._id,"$subscribers.subscriber"]},
                             then:true,
                             else:false
                         }
@@ -456,11 +476,11 @@ const getwatchhistory=asynchandler(async(req,res)=>{
         },
 
     ])
-
     return res
     .status(200)
     .json(
-        new handleresponse(200,user[0].Watchhistory,"Watch history fetched successfully")
+        new handleresponse(200,{},"Watch history fetched successfully")
+        // new handleresponse(200,user[0].Watchhistory,"Watch history fetched successfully")
     )
 })
 export {loginuser,

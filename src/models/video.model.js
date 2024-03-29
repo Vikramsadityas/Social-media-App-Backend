@@ -23,15 +23,15 @@ const VideoSchema=new Schema({
     },
     duration:{
         type:Number,
-        required:true
+        // required:true
     },
     views:{
         type:Number,
-        required:true
+        // required:true
     },
     isPublished:{
         type:Boolean,
-        required:true
+        // required:true
     },
 },{timestamps:true})
 VideoSchema.plugin(mongooseAggregatePaginate)

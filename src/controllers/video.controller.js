@@ -4,7 +4,7 @@ import { User } from "../models/user.model.js"
 import { handleerror } from "../utils/apierror.js"
 import { handleresponse } from "../utils/apiresponse.js"
 import { asynchandler } from "../utils/asynchandler.js"
-import { uploadFile } from "../utils/cloudinary.js"
+import { deletefile, uploadFile } from "../utils/cloudinary.js"
 
 
 const getAllVideos = asynchandler(async (req, res) => {
@@ -109,7 +109,7 @@ const publishAVideo = asynchandler(async (req, res) => {
                 throw new handleerror(500,"Video cannot uploaded")
             }
             return res.status(200).json(
-                new handleresponse(200,isuploaded,"Video uploaded seccessfully")
+                new handleresponse(200,isuploaded,"Video uploaded successfully")
             )
         } catch (error) {
             throw new handleerror(500,"Cannot upload videos not now!!")
@@ -118,22 +118,77 @@ const publishAVideo = asynchandler(async (req, res) => {
 
 const getVideoById = asynchandler(async (req, res) => {
     const { videoId } = req.params
+
     //TODO: get video by id
+    const  video= await Video.findById(videoId)
+    if (!video) {
+        throw new handleerror(400,"Video is not available")
+    }
+    return res.status(200).json(new handleresponse(200,video,"Video fetched by id successfully"))
 })
 
 const updateVideo = asynchandler(async (req, res) => {
     const { videoId } = req.params
+    const {title,description}=req.body
+    const thumbnaillocalpath=req.file?.path;
+    if(!thumbnaillocalpath)
+            {
+                throw new handleerror(400,"thumbnail file must be present")
+            }
+    const thumbnailpath=await uploadFile(thumbnaillocalpath);
+    if(!thumbnailpath)
+    {
+        throw new handleerror(400,"Video not uploaded")
+    }
     //TODO: update video details like title, description, thumbnail
-
+    const video=await Video.findByIdAndUpdate(videoId,{
+        title,
+        description,
+        thumbnail:thumbnailpath.url
+    })
+    const isuploaded=await Video.find(video._id)
+    return res.status(200).json(new handleresponse(200,isuploaded,"Video details updated successfully"))
 })
 
 const deleteVideo = asynchandler(async (req, res) => {
     const { videoId } = req.params
+    const videotodelete=await Video.findById(videoId)
+    if(!videotodelete){
+        throw new handleerror(400,"Video file not present")
+    }
+    const videopath=videotodelete.videoFile?videotodelete.videoFile:null
+    if(!videopath)
+    {
+        throw new handleerror(400,"No video to Delete")
+    }
+    await deletefile(videopath)
+    const video=await Video.findByIdAndUpdate(
+        videoId,
+        {
+            $set:{
+                videoFile:""
+            }
+        },
+        {new:true}
+    )
+        return res.status(200).json(new handleresponse(200,video,"Video deleted Successfully"))
+
     //TODO: delete video
 })
 
 const togglePublishStatus = asynchandler(async (req, res) => {
     const { videoId } = req.params
+    const video=await Video.findById(videoId)
+    if (!video)
+    {
+        throw new handleerror(400,"Video not found")
+    }
+    return res
+    .status(200)
+    .json(
+        new  handleresponse(200,video,"Video is published")
+    )
+
 })
 
 export {

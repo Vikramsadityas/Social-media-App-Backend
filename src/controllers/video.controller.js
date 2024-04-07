@@ -6,7 +6,6 @@ import { handleresponse } from "../utils/apiresponse.js"
 import { asynchandler } from "../utils/asynchandler.js"
 import { deletefile, uploadFile } from "../utils/cloudinary.js"
 
-
 const getAllVideos = asynchandler(async (req, res) => {
     const { page = 1, limit = 10, query} = req.query
     //TODO: get all videos based on query, sort, pagination
@@ -191,11 +190,12 @@ const togglePublishStatus = asynchandler(async (req, res) => {
 
 })
 
+
 export {
     getAllVideos,
     publishAVideo,
     getVideoById,
     updateVideo,
     deleteVideo,
-    togglePublishStatus
+    togglePublishStatus,
 }

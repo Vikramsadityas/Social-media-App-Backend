@@ -13,6 +13,23 @@ const getVideoComments = asynchandler(async (req, res) => {
 
 const addComment = asynchandler(async (req, res) => {
     // TODO: add a comment to a video
+    const {comment}=req.body
+    console.log("2",comment)
+    if(!comment)
+    {
+        throw new handleerror(400,"Comment cannot be empty!!")
+    }
+    const commentuser=await Comment.create({
+        comment:comment
+    })
+    if(!commentuser)
+    {
+        throw new handleerror(500,"Comment cannot added") 
+    }
+    const mycomment=await Comment.findById(commentuser._id)
+    return res
+    .status(200)
+    .json(new handleresponse(200,mycomment,"Comment added successfully"))
 })
 
 const updateComment = asynchandler(async (req, res) => {

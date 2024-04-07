@@ -496,4 +496,5 @@ export {loginuser,
     deleteavatar,
     deletecoverimage,
     getwatchhistory
+
 }
